@@ -72,13 +72,53 @@ void ParticleFilter::init(double x, double y, double theta, double std[])
 	}
 }
 
+// Predicts the state(set of particles) for the next time step
+// using the process model.
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate)
 {
-	// TODO: Add measurements to each particle and add random Gaussian noise.
-	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
+	// Add measurements to each particle and add random Gaussian noise.
+	// Object of random number engine class that generate pseudo-random numbers
+	default_random_engine gen;
+
+  // Standard deviations for x, y, and theta
+	double std_x, std_y, std_theta;
+
+	// Set standard deviations for x, y, and theta.
+  std_x = std_pos[0];
+	std_y = std_pos[1];
+  std_theta = std_pos[2];
+
+	// NOTE: Adding noise using the following resources
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
+  // Create a normal (Gaussian) distribution for noise along position x.
+	normal_distribution<double> noise_dist_x(0.0, std_x);
+  // Create a normal (Gaussian) distribution for noise along position y.
+	normal_distribution<double> noise_dist_y(0.0, std_y);
+  // Create a normal (Gaussian) distribution for noise of direction theta.
+	normal_distribution<double> noise_dist_theta(0.0, std_theta);
+
+	// Prediction for position x,y and angle theta for each of the particles
+	for(size_t par_index = 0; par_index < particles.size(); par_index++)
+	{
+		// Temporary variable to store the particle's previous state's theta
+		double prev_theta = particles[par_index].theta;
+
+		// Update the position x, y and angle theta of the particle
+		particles[par_index].x += (velocity/yaw_rate) * \
+															 (sin((prev_theta) + (yaw_rate * delta_t)) - \
+															  sin(prev_theta));
+		particles[par_index].y += (velocity/yaw_rate) * \
+															 (cos(prev_theta)- \
+															  cos((prev_theta) + (yaw_rate * delta_t)));
+		particles[par_index].theta += delta_t;
+
+		// Add random gaussian noise for each of the above updated measurements
+		particles[par_index].x += noise_dist_x(gen);
+		particles[par_index].y += noise_dist_y(gen);
+		particles[par_index].theta += noise_dist_theta(gen);
+	}
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations)
