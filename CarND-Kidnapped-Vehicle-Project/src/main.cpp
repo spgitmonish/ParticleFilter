@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define DEBUG 0
+
 int main()
 {
 	// NOTE: These parameters are related to grading.
@@ -98,7 +100,19 @@ int main()
 			n_x = N_x_init(gen);
 			n_y = N_y_init(gen);
 			n_theta = N_theta_init(gen);
+			// Add noise to the ground truth for the initialization step
 			pf.init(gt[i].x + n_x, gt[i].y + n_y, gt[i].theta + n_theta, sigma_pos);
+
+		#if DEBUG
+			for(size_t par_index = 0; par_index < pf.particles.size(); par_index++)
+			{
+				cout << pf.particles[par_index].id << ", ";
+				cout << pf.particles[par_index].x << ", ";
+				cout << pf.particles[par_index].y << ", ";
+				cout << pf.particles[par_index].theta << ", ";
+				cout << pf.particles[par_index].weight << "\n";
+			}
+		#endif
 		}
 		else
 		{

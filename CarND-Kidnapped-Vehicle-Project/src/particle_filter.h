@@ -11,6 +11,8 @@
 
 #include "helper_functions.h"
 
+using namespace std;
+
 struct Particle
 {
 	int id;
@@ -19,8 +21,6 @@ struct Particle
 	double theta;
 	double weight;
 };
-
-
 
 class ParticleFilter
 {
