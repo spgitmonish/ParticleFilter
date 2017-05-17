@@ -46,7 +46,11 @@ inline double dist(double x1, double y1, double x2, double y2)
 	return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
-// Return the error for each of the parameters using the ground truth
+/* Return the error for each of the parameters using the ground truth
+ * @param (gt_x, gt_y, gt_theta) x, y and theta of ground truth
+ * @param (pf_x, pf_y, pf_theta) x, y and theta of prediction
+ * @output Error between the ground truth and the prediction
+ */
 inline double * getError(double gt_x, double gt_y, double gt_theta, double pf_x, double pf_y, double pf_theta)
 {
 	static double error[3];
