@@ -121,19 +121,71 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	}
 }
 
-void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations)
+void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, vector<LandmarkObs>& observations)
 {
-	// TODO: Find the predicted measurement that is closest to each observed measurement and assign the
-	//   observed measurement to this particular landmark.
+	// TODO: Find the predicted measurement that is closest to each
+	// observed measurement and assign the observed measurement to this
+	// particular landmark.
 
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
-																	 std::vector<LandmarkObs> observations,
+																	 vector<LandmarkObs> observations,
 																	 Map map_landmarks)
 {
 	// TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
 	//   more about this distribution here: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
+
+	// Go through the list of particles
+	//for(size_t par_index = 0; par_index < particles.size(); par_index++)
+	for(size_t par_index = 0; par_index <= 0; par_index++)
+	{
+		// Vector of converted observations
+		vector<LandmarkObs> converted_obs;
+
+		// Transform the vehicle observation into the map co-ordinates from
+		// the perspective of the particle
+		for(size_t obs_index = 0; obs_index < observations.size(); obs_index++)
+		{
+			// Get the current observation
+			LandmarkObs current_obs = observations[obs_index];
+
+			// Convert it from vehicle to map co-ordinates
+			convertVehicleToMapCoords(current_obs, particles[par_index]);
+
+			// Add it to the list of converted observations
+			converted_obs.push_back(current_obs);
+		}
+
+		// Associate the closest observation(Euclidean Distance) to the landmark
+
+	}
+}
+
+void ParticleFilter::resample()
+{
+	// TODO: Resample particles with replacement with probability proportional to their weight.
+	// NOTE: You may find discrete_distribution helpful here.
+	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+}
+
+void ParticleFilter::write(string filename)
+{
+	// You don't need to modify this file.
+	ofstream dataFile;
+	dataFile.open(filename, ios::app);
+	for (int i = 0; i < num_particles; ++i)
+	{
+		dataFile << particles[i].x << " " << particles[i].y << " " << particles[i].theta << "\n";
+	}
+	dataFile.close();
+}
+
+// Convert the passed in vehicle co-ordinates into map co-ordinates from
+// the perspective of the particle in question
+void ParticleFilter::convertVehicleToMapCoords(LandmarkObs &observation,
+																					 		 Particle particle)
+{
 	// NOTE: The observations are given in the VEHICLE'S coordinate system. Your particles are located
 	//   according to the MAP'S coordinate system. You will need to transform between the two systems.
 	//   Keep in mind that this transformation requires both rotation AND translation (but no scaling).
@@ -142,24 +194,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   and the following is a good resource for the actual equation to implement (look at equation
 	//   3.33. Note that you'll need to switch the minus sign in that equation to a plus to account
 	//   for the fact that the map's y-axis actually points downwards.)
-	//   http://planning.cs.uiuc.edu/node99.html
-}
+	//   1. http://planning.cs.uiuc.edu/node99.html
+	//   2. http://www.sunshine2k.de/articles/RotationDerivation.pdf
+	observation.x = particle.x + \
+									observation.x * cos(particle.theta) - \
+									observation.y * sin(particle.theta);
 
-void ParticleFilter::resample()
-{
-	// TODO: Resample particles with replacement with probability proportional to their weight.
-	// NOTE: You may find std::discrete_distribution helpful here.
-	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
-}
-
-void ParticleFilter::write(std::string filename)
-{
-	// You don't need to modify this file.
-	std::ofstream dataFile;
-	dataFile.open(filename, std::ios::app);
-	for (int i = 0; i < num_particles; ++i)
-	{
-		dataFile << particles[i].x << " " << particles[i].y << " " << particles[i].theta << "\n";
-	}
-	dataFile.close();
+	observation.y = particle.y + \
+									observation.x * sin(particle.theta) + \
+									observation.y * cos(particle.theta);
 }

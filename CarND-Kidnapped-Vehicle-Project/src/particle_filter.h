@@ -45,7 +45,7 @@ public:
 	// Destructor
 	~ParticleFilter() {}
 
-	/**
+	/*
 	 * Initializes particle filter by initializing particles to Gaussian
 	 * distribution around first position and all the weights set to 1.
 	 * @param x Initial x position [m] (simulated estimate from GPS)
@@ -56,7 +56,7 @@ public:
 	 */
 	void init(double x, double y, double theta, double std[]);
 
-	/**
+	/*
 	 * Predicts the state for the next time step using the process model.
 	 * @param delta_t: Time between time step t and t+1 in measurements [s]
 	 * @param std_pos[]: Array of dimension 3 [standard deviation of x [m],
@@ -68,7 +68,7 @@ public:
 	void prediction(double delta_t, double std_pos[],
 									double velocity, double yaw_rate);
 
-	/**
+	/*
 	 * Finds which observations correspond to which landmarks
 	 * (likely by using a nearest-neighbors data association).
 	 * @param predicted: Vector of predicted landmark observations
@@ -77,7 +77,7 @@ public:
 	void dataAssociation(std::vector<LandmarkObs> predicted,
 											 std::vector<LandmarkObs>& observations);
 
-	/**
+	/*
 	 * Updates the weights for each particle based on the likelihood of the
 	 * observed measurements.
 	 * @param sensor_range: Range [m] of sensor
@@ -89,7 +89,7 @@ public:
 	void updateWeights(double sensor_range, double std_landmark[],
 										 std::vector<LandmarkObs> observations, Map map_landmarks);
 
-	/**
+	/*
 	 * Resamples from the updated set of particles to form the new set of particles.
 	 */
 	void resample();
@@ -100,13 +100,21 @@ public:
 	 */
 	void write(std::string filename);
 
-	/**
+	/*
 	 * Returns whether particle filter is initialized yet or not.
 	 */
 	const bool initialized() const
 	{
 		return is_initialized;
 	}
+private:
+	/*
+	 * Convert the passed in vehicle co-ordinates into map co-ordinates from
+	 * the perspective of the particle in question
+	 */
+	void convertVehicleToMapCoords(LandmarkObs &observation,
+																 Particle particle);
+
 };
 
 
