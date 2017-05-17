@@ -8,10 +8,11 @@
 #ifndef MAP_H_
 #define MAP_H_
 
-class Map {
+class Map
+{
 public:
-
-	struct single_landmark_s{
+	struct single_landmark_s
+	{
 		// Landmark ID
 		int id_i ;
 		// Landmark x-position in the map (global coordinates)
@@ -21,7 +22,7 @@ public:
 	};
 
   // List of landmarks in the map
-	std::vector<single_landmark_s> landmark_list ;
+	std::vector<single_landmark_s> landmark_list;
 };
 
 
