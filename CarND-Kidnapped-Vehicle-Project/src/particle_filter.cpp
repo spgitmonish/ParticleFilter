@@ -186,9 +186,30 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			// Update the weights of each particle using a
 			// a multi-variate Gaussian distribution.
 			// Info: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
-			// Variable to store the result of the multivariate-gaussian
-			double multi_gaussian;
-			multi_gaussian = 1.0;
+			// Set standard deviations for x, y
+		  double std_x, std_y;
+		  double var_x, var_y;
+
+		  // Set the standard deviation and calculate variance
+		  std_x = std_landmark[0];
+			std_y = std_landmark[1];
+		  var_x = std_x * std_x;
+		  var_y = std_y * std_y;
+
+		  // Variables to store the square of the difference between measured and predicted
+		  // x and y values
+		  double sq_diff_x = map_landmarks.landmark_list[land_index].x_f - \
+																			 observations[chosen_obs_idx].x;
+		  double sq_diff_y = map_landmarks.landmark_list[land_index].y_f - \
+																			 observations[chosen_obs_idx].y;
+		  sq_diff_x = sq_diff_x * sq_diff_x;
+		  sq_diff_y = sq_diff_y * sq_diff_y;
+
+		  // Variable to store the result of the multivariate-gaussian
+		  double multi_gaussian;
+		  multi_gaussian = (1 / (2 * M_PI * std_x * std_y)) * \
+		                        exp(-((sq_diff_x) / (2 * var_x) + (sq_diff_y) / (2 * var_y)));
+
 			particles[par_index].weight *= multi_gaussian;
 		}
 	}
