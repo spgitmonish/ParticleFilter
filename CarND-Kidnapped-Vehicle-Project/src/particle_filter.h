@@ -11,6 +11,7 @@
 
 #include "helper_functions.h"
 #include <math.h>
+#include <float.h>
 
 using namespace std;
 
@@ -32,11 +33,11 @@ class ParticleFilter
 	bool is_initialized;
 
 	// Vector of weights of all particles
-	std::vector<double> weights;
+	vector<double> weights;
 
 public:
 	// Set of current particles
-	std::vector<Particle> particles;
+	vector<Particle> particles;
 
 	// Constructor
 	// @param M Number of particles, whether the particle is initialized
@@ -69,15 +70,6 @@ public:
 									double velocity, double yaw_rate);
 
 	/*
-	 * Finds which observations correspond to which landmarks
-	 * (likely by using a nearest-neighbors data association).
-	 * @param predicted: Vector of predicted landmark observations
-	 * @param observations: Vector of landmark observations
-	 */
-	void dataAssociation(std::vector<LandmarkObs> predicted,
-											 std::vector<LandmarkObs>& observations);
-
-	/*
 	 * Updates the weights for each particle based on the likelihood of the
 	 * observed measurements.
 	 * @param sensor_range: Range [m] of sensor
@@ -87,7 +79,7 @@ public:
 	 * @param map: Map class containing map landmarks
 	 */
 	void updateWeights(double sensor_range, double std_landmark[],
-										 std::vector<LandmarkObs> observations, Map map_landmarks);
+										 vector<LandmarkObs> observations, Map map_landmarks);
 
 	/*
 	 * Resamples from the updated set of particles to form the new set of particles.
@@ -98,7 +90,7 @@ public:
 	 * Writes particle positions to a file.
 	 * @param filename: File to write particle positions to.
 	 */
-	void write(std::string filename);
+	void write(string filename);
 
 	/*
 	 * Returns whether particle filter is initialized yet or not.
@@ -114,6 +106,16 @@ private:
 	 */
 	void convertVehicleToMapCoords(LandmarkObs &observation,
 																 Particle particle);
+
+	 /*
+ 	 * Finds which observations correspond to which landmark
+ 	 * (likely by using a nearest-neighbors data association).
+ 	 * @param landmark: Single landmark in question
+ 	 * @param observations: Vector of landmark observations
+ 	 */
+ 	size_t dataAssociation(Map::single_landmark_s landmark,
+ 											 	 vector<LandmarkObs> observations);
+
 
 };
 

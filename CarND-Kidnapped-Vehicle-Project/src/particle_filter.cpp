@@ -121,21 +121,39 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	}
 }
 
-void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, vector<LandmarkObs>& observations)
+// Find the closest observation in the list to the given landmark
+size_t ParticleFilter::dataAssociation(Map::single_landmark_s landmark,
+																		   vector<LandmarkObs> observations)
 {
-	// TODO: Find the predicted measurement that is closest to each
-	// observed measurement and assign the observed measurement to this
-	// particular landmark.
+	// Start of with the maximum possible value
+	double minDistance = DBL_MAX;
+	double indexOfObs;
 
+	// Find the observation which is closest to the landmark
+	for(size_t obs_index = 0; obs_index < observations.size(); obs_index++)
+	{
+		double currentDistance = dist(landmark.x_f,
+																	landmark.y_f,
+																	observations[obs_index].x,
+																	observations[obs_index].y);
+
+		// Update the minimum distance found and the index if another observation
+		// is closer to the landmark
+		if(currentDistance <= minDistance)
+		{
+			minDistance = currentDistance;
+			indexOfObs = obs_index;
+		}
+	}
+
+	return indexOfObs;
 }
 
+// Update all the weights of the particles in the particle filter
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 																	 vector<LandmarkObs> observations,
 																	 Map map_landmarks)
 {
-	// TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
-	//   more about this distribution here: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
-
 	// Go through the list of particles
 	//for(size_t par_index = 0; par_index < particles.size(); par_index++)
 	for(size_t par_index = 0; par_index <= 0; par_index++)
@@ -157,8 +175,22 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			converted_obs.push_back(current_obs);
 		}
 
-		// Associate the closest observation(Euclidean Distance) to the landmark
+		// Go through the list of landmarks and find the closest observation
+		for(size_t land_index = 0; land_index < map_landmarks.landmark_list.size(); land_index++)
+		{
+			// For this landmark find the closest observation, update the weight
+			// calculation
+			size_t chosen_obs_idx = dataAssociation(map_landmarks.landmark_list[land_index],
+																							converted_obs);
 
+			// Update the weights of each particle using a
+			// a multi-variate Gaussian distribution.
+			// Info: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
+			// Variable to store the result of the multivariate-gaussian
+			double multi_gaussian;
+			multi_gaussian = 1.0;
+			particles[par_index].weight *= multi_gaussian;
+		}
 	}
 }
 
