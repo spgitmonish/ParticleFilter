@@ -82,7 +82,7 @@ public:
 										 vector<LandmarkObs> observations, Map map_landmarks);
 
 	/*
-	 * Resamples from the updated set of particles to form the new set of particles.
+	 * Resample particles with replacement with probability proportional to weight
 	 */
 	void resample();
 
