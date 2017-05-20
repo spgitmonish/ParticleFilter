@@ -8,8 +8,6 @@
 
 using namespace std;
 
-#define DEBUG 0
-
 int main()
 {
 	// NOTE: These parameters are related to grading.
@@ -83,7 +81,7 @@ int main()
 
 	for (int i = 0; i < num_time_steps; ++i)
 	{
-		cout << "Time step: " << i << endl;
+		cout << "\nTime step: " << i << endl;
 		// Read in landmark observations for current time step.
 		ostringstream file;
 		file << "data/observation/observations_" << setfill('0') << setw(6) << i+1 << ".txt";
@@ -136,6 +134,11 @@ int main()
 		// Update the weights of the particles and resample
 		pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 		pf.resample();
+
+	#if DEBUG
+		cout << "Post " << endl;
+		cout << pf.particles[0].x << ", " << pf.particles[0].y << ", " << pf.particles[0].theta << "\n";
+	#endif
 
 		// Calculate and output the average weighted error of the particle filter
 		// over all time steps so far.

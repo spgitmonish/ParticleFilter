@@ -110,13 +110,13 @@ private:
 	 /*
  	 * Finds which observations correspond to which landmark
  	 * (likely by using a nearest-neighbors data association).
- 	 * @param landmark: Single landmark in question
- 	 * @param observations: Vector of landmark observations
+	 * @param sensor_range: Range of the sensor
+ 	 * @param landmarks: List of landmarks
+ 	 * @param observation: Current observation in question
  	 */
- 	size_t dataAssociation(Map::single_landmark_s landmark,
- 											 	 vector<LandmarkObs> observations);
-
-
+ 	size_t dataAssociation(double sensor_range,
+												 Map landmarks,
+												 LandmarkObs observation);
 };
 
 

@@ -74,7 +74,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[])
 
 // Predicts the state(set of particles) for the next time step
 // using the process model.
-void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate)
+void ParticleFilter::prediction(double delta_t, double std_pos[],
+																double velocity, double yaw_rate)
 {
 	// Add measurements to each particle and add random Gaussian noise.
 	// Object of random number engine class that generate pseudo-random numbers
@@ -92,27 +93,38 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
-  // Create a normal (Gaussian) distribution for noise along position x.
-	normal_distribution<double> noise_dist_x(0.0, std_x);
-  // Create a normal (Gaussian) distribution for noise along position y.
-	normal_distribution<double> noise_dist_y(0.0, std_y);
-  // Create a normal (Gaussian) distribution for noise of direction theta.
-	normal_distribution<double> noise_dist_theta(0.0, std_theta);
-
 	// Prediction for position x,y and angle theta for each of the particles
 	for(size_t par_index = 0; par_index < particles.size(); par_index++)
 	{
 		// Temporary variable to store the particle's previous state's theta
 		double prev_theta = particles[par_index].theta;
 
-		// Update the position x, y and angle theta of the particle
-		particles[par_index].x += (velocity/yaw_rate) * \
-															 (sin((prev_theta) + (yaw_rate * delta_t)) - \
-															  sin(prev_theta));
-		particles[par_index].y += (velocity/yaw_rate) * \
-															 (cos(prev_theta)- \
-															  cos((prev_theta) + (yaw_rate * delta_t)));
-		particles[par_index].theta += delta_t;
+		// Avoid divide by zero error and update prediction for the particle
+		if(abs(yaw_rate) > 0.0001)
+		{
+			// Update the position x, y and angle theta of the particle
+			particles[par_index].x += (velocity/yaw_rate) * \
+																 (sin((prev_theta) + (yaw_rate * delta_t)) - \
+																	sin(prev_theta));
+			particles[par_index].y += (velocity/yaw_rate) * \
+																 (cos(prev_theta)- \
+																	cos((prev_theta) + (yaw_rate * delta_t)));
+		}
+		else
+		{
+			// Update the position x, y and angle theta of the particle
+			particles[par_index].x += velocity * delta_t * cos(prev_theta);
+			particles[par_index].y += velocity * delta_t * sin(prev_theta);
+		}
+
+		particles[par_index].theta = prev_theta + yaw_rate * delta_t;
+
+		// Create a normal (Gaussian) distribution for noise along position x.
+		normal_distribution<double> noise_dist_x(0, std_x);
+	  // Create a normal (Gaussian) distribution for noise along position y.
+		normal_distribution<double> noise_dist_y(0, std_y);
+	  // Create a normal (Gaussian) distribution for noise of direction theta.
+		normal_distribution<double> noise_dist_theta(0, std_theta);
 
 		// Add random gaussian noise for each of the above updated measurements
 		particles[par_index].x += noise_dist_x(gen);
@@ -121,32 +133,37 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	}
 }
 
-// Find the closest observation in the list to the given landmark
-size_t ParticleFilter::dataAssociation(Map::single_landmark_s landmark,
-																		   vector<LandmarkObs> observations)
+// Find the closest landmark to the current observation
+size_t ParticleFilter::dataAssociation(double sensor_range,
+																			 Map landmarks,
+																			 LandmarkObs observation)
 {
 	// Start of with the maximum possible value
 	double minDistance = DBL_MAX;
-	double indexOfObs;
+	size_t indexOfLandmark = 0;
 
-	// Find the observation which is closest to the landmark
-	for(size_t obs_index = 0; obs_index < observations.size(); obs_index++)
+	// Find the landmark closest to the observation
+	for(size_t land_index = 0; land_index < landmarks.landmark_list.size(); land_index++)
 	{
-		double currentDistance = dist(landmark.x_f,
-																	landmark.y_f,
-																	observations[obs_index].x,
-																	observations[obs_index].y);
+		double currentDistance = dist(landmarks.landmark_list[land_index].x_f,
+																	landmarks.landmark_list[land_index].y_f,
+																	observation.x,
+																	observation.y);
 
-		// Update the minimum distance found and the index if another observation
-		// is closer to the landmark
-		if(currentDistance <= minDistance)
+    // Make sure that landmarks are in the sensor range
+		if(currentDistance <= sensor_range)
 		{
-			minDistance = currentDistance;
-			indexOfObs = obs_index;
+			// Update the minimum distance found and the index if
+			// another landmark is closer to this observation
+			if(currentDistance <= minDistance)
+			{
+				minDistance = currentDistance;
+				indexOfLandmark = land_index;
+			}
 		}
 	}
 
-	return indexOfObs;
+	return indexOfLandmark;
 }
 
 // Update all the weights of the particles in the particle filter
@@ -155,12 +172,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 																	 Map map_landmarks)
 {
 	// Go through the list of particles
-	//for(size_t par_index = 0; par_index < particles.size(); par_index++)
-	for(size_t par_index = 0; par_index <= 0; par_index++)
+	for(size_t par_index = 0; par_index < particles.size(); par_index++)
 	{
-		// Vector of converted observations
-		vector<LandmarkObs> converted_obs;
-
 		// Transform the vehicle observation into the map co-ordinates from
 		// the perspective of the particle
 		for(size_t obs_index = 0; obs_index < observations.size(); obs_index++)
@@ -171,44 +184,35 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			// Convert it from vehicle to map co-ordinates
 			convertVehicleToMapCoords(current_obs, particles[par_index]);
 
-			// Add it to the list of converted observations
-			converted_obs.push_back(current_obs);
-		}
-
-		// Go through the list of landmarks and find the closest observation
-		for(size_t land_index = 0; land_index < map_landmarks.landmark_list.size(); land_index++)
-		{
-			// For this landmark find the closest observation, update the weight
-			// calculation
-			size_t chosen_obs_idx = dataAssociation(map_landmarks.landmark_list[land_index],
-																							converted_obs);
+			// Get the landmark closest to the observation
+			size_t land_index = dataAssociation(sensor_range, map_landmarks, current_obs);
 
 			// Update the weights of each particle using a
 			// a multi-variate Gaussian distribution.
 			// Info: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
 			// Set standard deviations for x, y
-		  double std_x, std_y;
-		  double var_x, var_y;
+			double std_x, std_y;
+			double var_x, var_y;
 
-		  // Set the standard deviation and calculate variance
-		  std_x = std_landmark[0];
+			// Set the standard deviation and calculate variance
+			std_x = std_landmark[0];
 			std_y = std_landmark[1];
-		  var_x = std_x * std_x;
-		  var_y = std_y * std_y;
+			var_x = std_x * std_x;
+			var_y = std_y * std_y;
 
-		  // Variables to store the square of the difference between measured and predicted
-		  // x and y values
-		  double sq_diff_x = map_landmarks.landmark_list[land_index].x_f - \
-																			 observations[chosen_obs_idx].x;
-		  double sq_diff_y = map_landmarks.landmark_list[land_index].y_f - \
-																			 observations[chosen_obs_idx].y;
-		  sq_diff_x = sq_diff_x * sq_diff_x;
-		  sq_diff_y = sq_diff_y * sq_diff_y;
+			// Variables to store the square of the difference between measured and
+			// predicted x and y values
+			double sq_diff_x = map_landmarks.landmark_list[land_index].x_f - \
+																			 current_obs.x;
+			double sq_diff_y = map_landmarks.landmark_list[land_index].y_f - \
+																			 current_obs.y;
+			sq_diff_x = sq_diff_x * sq_diff_x;
+			sq_diff_y = sq_diff_y * sq_diff_y;
 
-		  // Variable to store the result of the multivariate-gaussian
-		  double multi_gaussian;
-		  multi_gaussian = (1 / (2 * M_PI * std_x * std_y)) * \
-		                        exp(-((sq_diff_x) / (2 * var_x) + (sq_diff_y) / (2 * var_y)));
+			// Variable to store the result of the multivariate-gaussian
+			double multi_gaussian;
+			multi_gaussian = (1 / (2 * M_PI * std_x * std_y)) * \
+														exp(-((sq_diff_x) / (2 * var_x) + (sq_diff_y) / (2 * var_y)));
 
 			particles[par_index].weight *= multi_gaussian;
 		}

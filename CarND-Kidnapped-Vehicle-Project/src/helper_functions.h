@@ -14,6 +14,8 @@
 #include <vector>
 #include "map.h"
 
+#define DEBUG 1
+
 // Struct representing one position/control measurement.
 struct control_s
 {
@@ -41,7 +43,7 @@ struct LandmarkObs
 	int id;
 	// Local (vehicle coordinates) x position of landmark observation [m]
 	double x;
-	// Local (vehicle coordinates) y position of landmark observation [m]		
+	// Local (vehicle coordinates) y position of landmark observation [m]
 	double y;
 };
 
