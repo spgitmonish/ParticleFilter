@@ -215,11 +215,53 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	}
 }
 
+// Resample particles with replacement with probability proportional to weight.
 void ParticleFilter::resample()
 {
-	// TODO: Resample particles with replacement with probability proportional to their weight.
-	// NOTE: You may find discrete_distribution helpful here.
-	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+	// Copy of the particles vector list
+	vector<Particle> particlesCopy = particles;
+
+	// Empty the existing particle list
+	particles.erase(particles.begin(), particles.end());
+
+	// Vector of weights of the particles
+	vector<double> weights;
+	for(size_t par_index = 0; par_index < particlesCopy.size(); par_index++)
+	{
+		weights.push_back(particlesCopy[par_index].weight);
+	}
+
+	// Object of random number engine class that generate pseudo-random numbers
+	// NOTE: http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine
+	mt19937 gen;
+
+	// Object for generating discrete distribution based on the weights vector
+	discrete_distribution<double> weights_dist(weights.begin(), weights.end());
+
+	// With the discrete distribution pick out particles according to their
+	// weights. The higher the weight of the particle, the higher are the chances
+	// of the particle being included multiple times.
+	// Discrete_distribution is used here to pick particles with the appropriate
+	// weights(i.e. which meet a threshold)
+	// http://www.cplusplus.com/reference/random/discrete_distribution/
+	// NOTE: Here is an example which helps with the understanding
+	//       http://coliru.stacked-crooked.com/a/3c9005a4cc0ed9d6
+	for(size_t par_index = 0; par_index < particlesCopy.size(); par_index++)
+	{
+		// Append the particle to the new list
+		// NOTE: Calling weights_dist with the generator returns the index of one
+		//       of weights in the vector which was used to generate the distribution.
+		particles.push_back(particlesCopy[weights_dist(gen)]);
+	}
+
+	/*for(size_t par_index = 0; par_index < particles.size(); par_index++)
+	{
+		cout << particles[par_index].id << ", ";
+		cout << particles[par_index].x << ", ";
+		cout << particles[par_index].y << ", ";
+		cout << particles[par_index].theta << ", ";
+		cout << particles[par_index].weight << "\n";
+	}*/
 }
 
 void ParticleFilter::write(string filename)
