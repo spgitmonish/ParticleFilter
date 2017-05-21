@@ -107,7 +107,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 																 (sin((prev_theta) + (yaw_rate * delta_t)) - \
 																	sin(prev_theta));
 			particles[par_index].y += (velocity/yaw_rate) * \
-																 (cos(prev_theta)- \
+																 (cos(prev_theta) - \
 																	cos((prev_theta) + (yaw_rate * delta_t)));
 		}
 		else
@@ -134,32 +134,27 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 }
 
 // Find the closest landmark to the current observation
-size_t ParticleFilter::dataAssociation(double sensor_range,
-																			 Map landmarks,
+size_t ParticleFilter::dataAssociation(vector<Map::single_landmark_s> landmarks,
 																			 LandmarkObs observation)
 {
 	// Start of with the maximum possible value
 	double minDistance = DBL_MAX;
-	size_t indexOfLandmark = 0;
+	size_t indexOfLandmark;
 
 	// Find the landmark closest to the observation
-	for(size_t land_index = 0; land_index < landmarks.landmark_list.size(); land_index++)
+	for(size_t land_index = 0; land_index < landmarks.size(); land_index++)
 	{
-		double currentDistance = dist(landmarks.landmark_list[land_index].x_f,
-																	landmarks.landmark_list[land_index].y_f,
+		double currentDistance = dist(landmarks[land_index].x_f,
+																	landmarks[land_index].y_f,
 																	observation.x,
 																	observation.y);
 
-    // Make sure that landmarks are in the sensor range
-		if(currentDistance <= sensor_range)
+		// Update the minimum distance found and the index if
+		// another landmark is closer to this observation
+		if(currentDistance <= minDistance)
 		{
-			// Update the minimum distance found and the index if
-			// another landmark is closer to this observation
-			if(currentDistance <= minDistance)
-			{
-				minDistance = currentDistance;
-				indexOfLandmark = land_index;
-			}
+			minDistance = currentDistance;
+			indexOfLandmark = land_index;
 		}
 	}
 
@@ -171,48 +166,65 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 																	 vector<LandmarkObs> observations,
 																	 Map map_landmarks)
 {
+	// Set standard deviations for x, y
+	double std_x, std_y;
+	double var_x, var_y;
+
+	// Set the standard deviation and calculate variance
+	std_x = std_landmark[0];
+	std_y = std_landmark[1];
+	var_x = std_x * std_x;
+	var_y = std_y * std_y;
+
 	// Go through the list of particles
 	for(size_t par_index = 0; par_index < particles.size(); par_index++)
 	{
-		// Transform the vehicle observation into the map co-ordinates from
-		// the perspective of the particle
+		// Step 1: For the given list of landmarks find the predicted landmarks within
+		// the range of the car sensor
+		vector<Map::single_landmark_s> predicted_landmarks;
+		for(size_t land_index = 0; land_index < map_landmarks.landmark_list.size(); land_index++)
+		{
+			// Calculate the difference between the particle prediction & landmark
+			double distanceDiff = dist(particles[par_index].x,
+																 particles[par_index].y,
+																 map_landmarks.landmark_list[land_index].x_f,
+															 	 map_landmarks.landmark_list[land_index].y_f);
+
+			// Create a new list of landmarks within sensor range for data association
+			if(distanceDiff <= sensor_range)
+			{
+				predicted_landmarks.push_back(map_landmarks.landmark_list[land_index]);
+			}
+		}
+
+		// For the list of observations, convert to map-coordinates, find the
+		// closest landmark and finally update the weight of the particle
 		for(size_t obs_index = 0; obs_index < observations.size(); obs_index++)
 		{
-			// Get the current observation
-			LandmarkObs current_obs = observations[obs_index];
+			// Convert from car to map-coordinates
+			LandmarkObs convertedObs = convertVehicleToMapCoords(observations[obs_index],
+																													 particles[par_index]);
 
-			// Convert it from vehicle to map co-ordinates
-			convertVehicleToMapCoords(current_obs, particles[par_index]);
-
-			// Get the landmark closest to the observation
-			size_t land_index = dataAssociation(sensor_range, map_landmarks, current_obs);
+			// Find the closest predicted landmark to this observation
+			size_t closestLandIndex = dataAssociation(predicted_landmarks, convertedObs);
 
 			// Update the weights of each particle using a
-			// a multi-variate Gaussian distribution.
-			// Info: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
-			// Set standard deviations for x, y
-			double std_x, std_y;
-			double var_x, var_y;
-
-			// Set the standard deviation and calculate variance
-			std_x = std_landmark[0];
-			std_y = std_landmark[1];
-			var_x = std_x * std_x;
-			var_y = std_y * std_y;
+		  // a multi-variate Gaussian distribution.
+		  // Info: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
+			// NOTE: Since the rank of covariance is 2, bi-variate guassian equation
+			//       is used for updating the weights
 
 			// Variables to store the square of the difference between measured and
 			// predicted x and y values
-			double sq_diff_x = map_landmarks.landmark_list[land_index].x_f - \
-																			 current_obs.x;
-			double sq_diff_y = map_landmarks.landmark_list[land_index].y_f - \
-																			 current_obs.y;
+			double sq_diff_x = predicted_landmarks[closestLandIndex].x_f - convertedObs.x;
+			double sq_diff_y = predicted_landmarks[closestLandIndex].y_f - convertedObs.y;
 			sq_diff_x = sq_diff_x * sq_diff_x;
 			sq_diff_y = sq_diff_y * sq_diff_y;
 
 			// Variable to store the result of the multivariate-gaussian
 			double multi_gaussian;
 			multi_gaussian = (1 / (2 * M_PI * std_x * std_y)) * \
-														exp(-((sq_diff_x) / (2 * var_x) + (sq_diff_y) / (2 * var_y)));
+			                                exp(-((sq_diff_x) / (2 * var_x) + (sq_diff_y) / (2 * var_y)));
 
 			particles[par_index].weight *= multi_gaussian;
 		}
@@ -282,8 +294,8 @@ void ParticleFilter::write(string filename)
 
 // Convert the passed in vehicle co-ordinates into map co-ordinates from
 // the perspective of the particle in question
-void ParticleFilter::convertVehicleToMapCoords(LandmarkObs &observation,
-																					 		 Particle particle)
+LandmarkObs ParticleFilter::convertVehicleToMapCoords(LandmarkObs observationToConvert,
+																					 		 				Particle particle)
 {
 	// NOTE: The observations are given in the VEHICLE'S coordinate system. Your particles are located
 	//   according to the MAP'S coordinate system. You will need to transform between the two systems.
@@ -295,11 +307,15 @@ void ParticleFilter::convertVehicleToMapCoords(LandmarkObs &observation,
 	//   for the fact that the map's y-axis actually points downwards.)
 	//   1. http://planning.cs.uiuc.edu/node99.html
 	//   2. http://www.sunshine2k.de/articles/RotationDerivation.pdf
-	observation.x = particle.x + \
-									observation.x * cos(particle.theta) - \
-									observation.y * sin(particle.theta);
+	LandmarkObs convertedObservation;
+	convertedObservation.id = observationToConvert.id;
+	convertedObservation.x = particle.x + \
+													 observationToConvert.x * cos(particle.theta) - \
+													 observationToConvert.y * sin(particle.theta);
 
-	observation.y = particle.y + \
-									observation.x * sin(particle.theta) + \
-									observation.y * cos(particle.theta);
+	convertedObservation.y = particle.y + \
+													 observationToConvert.x * sin(particle.theta) + \
+													 observationToConvert.y * cos(particle.theta);
+
+	return convertedObservation;
 }

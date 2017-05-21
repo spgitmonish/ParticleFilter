@@ -14,7 +14,7 @@
 #include <vector>
 #include "map.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 // Struct representing one position/control measurement.
 struct control_s
