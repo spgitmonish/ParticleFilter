@@ -10,10 +10,7 @@
 void ParticleFilter::init(double x, double y, double theta, double std[])
 {
 	// NOTE: The number of particles needs to be tuned
-	num_particles = 100;
-
-	// Since this function is called only once(first measurement), set to True
-	is_initialized = true;
+	num_particles = 200;
 
 	// Object of random number engine class that generate pseudo-random numbers
 	default_random_engine gen;
@@ -70,6 +67,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[])
 		// Append the new particle to the vector
 		particles.push_back(new_particle);
 	}
+
+	// Since this function is called only once(first measurement), set to True
+	is_initialized = true;
 }
 
 // Predicts the state(set of particles) for the next time step
@@ -89,6 +89,13 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 	std_y = std_pos[1];
   std_theta = std_pos[2];
 
+	// Create a normal (Gaussian) distribution for noise along position x.
+	normal_distribution<double> noise_dist_x(0, std_x);
+	// Create a normal (Gaussian) distribution for noise along position y.
+	normal_distribution<double> noise_dist_y(0, std_y);
+	// Create a normal (Gaussian) distribution for noise of direction theta.
+	normal_distribution<double> noise_dist_theta(0, std_theta);
+
 	// NOTE: Adding noise using the following resources
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
@@ -104,11 +111,11 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 		{
 			// Update the position x, y and angle theta of the particle
 			particles[par_index].x += (velocity/yaw_rate) * \
-																 (sin((prev_theta) + (yaw_rate * delta_t)) - \
+																 (sin(prev_theta + (yaw_rate * delta_t)) - \
 																	sin(prev_theta));
 			particles[par_index].y += (velocity/yaw_rate) * \
 																 (cos(prev_theta) - \
-																	cos((prev_theta) + (yaw_rate * delta_t)));
+																	cos(prev_theta + (yaw_rate * delta_t)));
 		}
 		else
 		{
@@ -116,15 +123,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 			particles[par_index].x += velocity * delta_t * cos(prev_theta);
 			particles[par_index].y += velocity * delta_t * sin(prev_theta);
 		}
-
+		// Update theta
 		particles[par_index].theta = prev_theta + yaw_rate * delta_t;
-
-		// Create a normal (Gaussian) distribution for noise along position x.
-		normal_distribution<double> noise_dist_x(0, std_x);
-	  // Create a normal (Gaussian) distribution for noise along position y.
-		normal_distribution<double> noise_dist_y(0, std_y);
-	  // Create a normal (Gaussian) distribution for noise of direction theta.
-		normal_distribution<double> noise_dist_theta(0, std_theta);
 
 		// Add random gaussian noise for each of the above updated measurements
 		particles[par_index].x += noise_dist_x(gen);
@@ -179,7 +179,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	// Go through the list of particles
 	for(size_t par_index = 0; par_index < particles.size(); par_index++)
 	{
-		// Step 1: For the given list of landmarks find the predicted landmarks within
+		// For the given list of landmarks find the predicted landmarks within
 		// the range of the car sensor
 		vector<Map::single_landmark_s> predicted_landmarks;
 		for(size_t land_index = 0; land_index < map_landmarks.landmark_list.size(); land_index++)
