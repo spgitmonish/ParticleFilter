@@ -306,15 +306,6 @@ void ParticleFilter::resample()
 		//       of weights in the vector which was used to generate the distribution.
 		particles.push_back(particlesCopy[weights_dist(gen)]);
 	}
-
-	/*for(size_t par_index = 0; par_index < particles.size(); par_index++)
-	{
-		cout << particles[par_index].id << ", ";
-		cout << particles[par_index].x << ", ";
-		cout << particles[par_index].y << ", ";
-		cout << particles[par_index].theta << ", ";
-		cout << particles[par_index].weight << "\n";
-	}*/
 }
 
 void ParticleFilter::write(string filename)
@@ -334,16 +325,15 @@ void ParticleFilter::write(string filename)
 LandmarkObs ParticleFilter::convertVehicleToMapCoords(LandmarkObs observationToConvert,
 																					 		 				Particle particle)
 {
-	// NOTE: The observations are given in the VEHICLE'S coordinate system. Your particles are located
-	//   according to the MAP'S coordinate system. You will need to transform between the two systems.
-	//   Keep in mind that this transformation requires both rotation AND translation (but no scaling).
-	//   The following is a good resource for the theory:
-	//   https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
-	//   and the following is a good resource for the actual equation to implement (look at equation
-	//   3.33. Note that you'll need to switch the minus sign in that equation to a plus to account
-	//   for the fact that the map's y-axis actually points downwards.)
-	//   1. http://planning.cs.uiuc.edu/node99.html
-	//   2. http://www.sunshine2k.de/articles/RotationDerivation.pdf
+	// NOTE: The observations are given in the VEHICLE'S coordinate system.
+	// 	     Your particles are located according to the MAP'S coordinate system.
+	//       A transformation is required between the two systems.
+	//   		 The following is a good resource for the theory:
+	//   		 https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
+	//  		 and the following is a good resource for the actual equation to
+	//       implement (look at equation 3.33. The equation stays as it is.
+	//       1. http://planning.cs.uiuc.edu/node99.html
+	//       2. http://www.sunshine2k.de/articles/RotationDerivation.pdf
 	LandmarkObs convertedObservation;
 	convertedObservation.id = observationToConvert.id;
 	convertedObservation.x = particle.x + \
