@@ -110,10 +110,10 @@ private:
  	 * Finds which observations correspond to which landmark
  	 * (likely by using a nearest-neighbors data association).
  	 * @param landmarks: List of landmarks
- 	 * @param observation: Current observation in question
+ 	 * @param observation: Current list of converted observation
  	 */
- 	size_t dataAssociation(vector<Map::single_landmark_s> landmarks,
-											   LandmarkObs observation);
+	vector<LandmarkObs> dataAssociation(vector<Map::single_landmark_s> landmarks,
+		 																	vector<LandmarkObs> observations);
 };
 
 

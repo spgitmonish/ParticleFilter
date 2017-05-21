@@ -134,31 +134,45 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 }
 
 // Find the closest landmark to the current observation
-size_t ParticleFilter::dataAssociation(vector<Map::single_landmark_s> landmarks,
-																			 LandmarkObs observation)
+vector<LandmarkObs> ParticleFilter::dataAssociation(vector<Map::single_landmark_s> landmarks,
+																			 							vector<LandmarkObs> observations)
 {
-	// Start of with the maximum possible value
-	double minDistance = DBL_MAX;
-	size_t indexOfLandmark;
+	// Vector of associated landmarks
+	vector<LandmarkObs> associatedLandmarks;
 
-	// Find the landmark closest to the observation
-	for(size_t land_index = 0; land_index < landmarks.size(); land_index++)
+	// Go through list of observations
+	for(size_t obs_index = 0; obs_index < observations.size(); obs_index++)
 	{
-		double currentDistance = dist(landmarks[land_index].x_f,
-																	landmarks[land_index].y_f,
-																	observation.x,
-																	observation.y);
+			// Start of with the maximum possible value
+			double minDistance = DBL_MAX;
+			size_t indexOfLandmark;
 
-		// Update the minimum distance found and the index if
-		// another landmark is closer to this observation
-		if(currentDistance <= minDistance)
-		{
-			minDistance = currentDistance;
-			indexOfLandmark = land_index;
-		}
+			// Find the landmark closest to the observation
+			for(size_t land_index = 0; land_index < landmarks.size(); land_index++)
+			{
+					double currentDistance = dist(landmarks[land_index].x_f,
+																				landmarks[land_index].y_f,
+																				observations[obs_index].x,
+																				observations[obs_index].y);
+
+					// Update the minimum distance found and the index if
+					// another landmark is closer to this observation
+					if(currentDistance <= minDistance)
+					{
+							minDistance = currentDistance;
+							indexOfLandmark = land_index;
+					}
+			}
+
+			LandmarkObs closestLandmark;
+			closestLandmark.id = landmarks[indexOfLandmark].id_i;
+			closestLandmark.x = landmarks[indexOfLandmark].x_f;
+			closestLandmark.y = landmarks[indexOfLandmark].y_f;
+			associatedLandmarks.push_back(closestLandmark);
 	}
 
-	return indexOfLandmark;
+	// Return the associated landmarks
+	return associatedLandmarks;
 }
 
 // Update all the weights of the particles in the particle filter
@@ -197,37 +211,60 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			}
 		}
 
+		// Vector for converted observations
+		vector<LandmarkObs> convertedObservations;
+
 		// For the list of observations, convert to map-coordinates, find the
 		// closest landmark and finally update the weight of the particle
 		for(size_t obs_index = 0; obs_index < observations.size(); obs_index++)
 		{
-			// Convert from car to map-coordinates
-			LandmarkObs convertedObs = convertVehicleToMapCoords(observations[obs_index],
-																													 particles[par_index]);
+				// Convert from car to map-coordinates
+				LandmarkObs convertedObs = convertVehicleToMapCoords(observations[obs_index],
+																														 particles[par_index]);
 
-			// Find the closest predicted landmark to this observation
-			size_t closestLandIndex = dataAssociation(predicted_landmarks, convertedObs);
+				// Push to the new list of converted observations
+				convertedObservations.push_back(convertedObs);
+		}
 
+		// Using the converted observations perform data association
+		vector<LandmarkObs> associatedLandmarks = dataAssociation(predicted_landmarks,
+																															convertedObservations);
+
+		// Variable to store the result of the multivariate-gaussian
+		double multi_gaussian = 1.0;
+
+		// Update weight of the particle
+		for(size_t obs_index = 0; obs_index < associatedLandmarks.size(); obs_index++)
+		{
 			// Update the weights of each particle using a
-		  // a multi-variate Gaussian distribution.
-		  // Info: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
-			// NOTE: Since the rank of covariance is 2, bi-variate guassian equation
-			//       is used for updating the weights
+			// a multi-variate Gaussian distribution.
+			// Info: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
+			// Set standard deviations for x, y
+			double std_x, std_y;
+			double var_x, var_y;
+
+			// Set the standard deviation and calculate variance
+			std_x = std_landmark[0];
+			std_y = std_landmark[1];
+			var_x = std_x * std_x;
+			var_y = std_y * std_y;
 
 			// Variables to store the square of the difference between measured and
 			// predicted x and y values
-			double sq_diff_x = predicted_landmarks[closestLandIndex].x_f - convertedObs.x;
-			double sq_diff_y = predicted_landmarks[closestLandIndex].y_f - convertedObs.y;
+			double sq_diff_x = associatedLandmarks[obs_index].x - \
+			convertedObservations[obs_index].x;
+			double sq_diff_y = associatedLandmarks[obs_index].y - \
+			convertedObservations[obs_index].y;
+
 			sq_diff_x = sq_diff_x * sq_diff_x;
 			sq_diff_y = sq_diff_y * sq_diff_y;
 
-			// Variable to store the result of the multivariate-gaussian
-			double multi_gaussian;
-			multi_gaussian = (1 / (2 * M_PI * std_x * std_y)) * \
-			                                exp(-((sq_diff_x) / (2 * var_x) + (sq_diff_y) / (2 * var_y)));
-
-			particles[par_index].weight *= multi_gaussian;
+			multi_gaussian *= (1 / (2 * M_PI * std_x * std_y)) * \
+												exp(-((sq_diff_x) / (2 * var_x) + (sq_diff_y) / (2 * var_y)));
 		}
+
+		// Update the weight of the particle
+		particles[par_index].weight = multi_gaussian;
 	}
 }
 
