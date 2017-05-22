@@ -308,14 +308,24 @@ void ParticleFilter::resample()
 	}
 }
 
+
+// Writes particle positions to a file.
 void ParticleFilter::write(string filename)
 {
-	// You don't need to modify this file.
+	// Object of ofstream for writing output data
 	ofstream dataFile;
+	
+	// Open the file with the filename passed in and with ios::app option set
+	// NOTE: When ios::app is set, all output operations are performed at the end
+	//       of the file.
 	dataFile.open(filename, ios::app);
-	for (int i = 0; i < num_particles; ++i)
+
+	// Go through each particle and write the particle data into the file
+	for (int par_index = 0; par_index < num_particles; ++par_index)
 	{
-		dataFile << particles[i].x << " " << particles[i].y << " " << particles[i].theta << "\n";
+		dataFile << particles[par_index].x << "," \
+						 << particles[par_index].y << "," \
+						 << particles[par_index].theta << "\n";
 	}
 	dataFile.close();
 }

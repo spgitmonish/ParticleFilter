@@ -82,6 +82,7 @@ int main()
 	for (int i = 0; i < num_time_steps; ++i)
 	{
 		cout << "\nTime step: " << i << endl;
+
 		// Read in landmark observations for current time step.
 		ostringstream file;
 		file << "data/observation/observations_" << setfill('0') << setw(6) << i+1 << ".txt";
@@ -135,6 +136,9 @@ int main()
 		pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 		pf.resample();
 
+		// Particles information after each iteration
+		string par_output = "par_filter_output" + to_string(i) + ".txt"
+		pf.write(par_output);
 	#if DEBUG
 		cout << "Post " << endl;
 		cout << pf.particles[0].x << ", " << pf.particles[0].y << ", " << pf.particles[0].theta << "\n";
