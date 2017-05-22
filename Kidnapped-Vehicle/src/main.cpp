@@ -137,7 +137,7 @@ int main()
 		pf.resample();
 
 		// Particles information after each iteration
-		string par_output = "par_filter_output" + to_string(i) + ".txt"
+		string par_output = "par_filter_output" + to_string(i) + ".txt";
 		pf.write(par_output);
 	#if DEBUG
 		cout << "Post " << endl;
