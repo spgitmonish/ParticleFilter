@@ -315,7 +315,8 @@ void ParticleFilter::write(string filename)
 	// Object of ofstream for writing output data
 	ofstream dataFile;
 
-	cout << filename << endl;
+	// Delete existing files because we always write at the end of the file
+	remove(filename.c_str());
 
 	// Open the file with the filename passed in and with ios::app option set
 	// NOTE: When ios::app is set, all output operations are performed at the end
@@ -325,9 +326,18 @@ void ParticleFilter::write(string filename)
 	// Go through each particle and write the particle data into the file
 	for (int par_index = 0; par_index < num_particles; ++par_index)
 	{
-		dataFile << particles[par_index].x << "," \
-						 << particles[par_index].y << "," \
-						 << particles[par_index].theta << "\n";
+		if(par_index == num_particles - 1)
+		{
+			dataFile << particles[par_index].x << "," \
+							 << particles[par_index].y << "," \
+							 << particles[par_index].theta;
+		}
+		else
+		{
+			dataFile << particles[par_index].x << "," \
+							 << particles[par_index].y << "," \
+							 << particles[par_index].theta << "\n";
+		}
 	}
 
 	// Close the file

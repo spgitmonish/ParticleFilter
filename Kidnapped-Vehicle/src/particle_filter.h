@@ -12,6 +12,7 @@
 #include "helper_functions.h"
 #include <math.h>
 #include <float.h>
+#include <stdio.h>
 
 using namespace std;
 
