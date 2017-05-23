@@ -14,7 +14,12 @@
 #include <vector>
 #include "map.h"
 
+// For general debugging
 #define DEBUG 0
+
+// Enable this flag if the particles output needs to be written to a file for
+// using the output for visualization
+#define WRITE_PAR_FIL_OUTPUT 0
 
 // Struct representing one position/control measurement.
 struct control_s

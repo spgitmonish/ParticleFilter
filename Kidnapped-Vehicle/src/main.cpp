@@ -137,8 +137,11 @@ int main()
 		pf.resample();
 
 		// Particles information after each iteration
-		string par_output = "par_filter_output" + to_string(i) + ".txt";
+	#if WRITE_PAR_FIL_OUTPUT
+		string par_output = "data/parfiloutput/par_filter_output" + to_string(i) + ".txt";
 		pf.write(par_output);
+	#endif
+
 	#if DEBUG
 		cout << "Post " << endl;
 		cout << pf.particles[0].x << ", " << pf.particles[0].y << ", " << pf.particles[0].theta << "\n";

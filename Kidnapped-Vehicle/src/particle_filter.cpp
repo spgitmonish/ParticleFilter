@@ -314,7 +314,9 @@ void ParticleFilter::write(string filename)
 {
 	// Object of ofstream for writing output data
 	ofstream dataFile;
-	
+
+	cout << filename << endl;
+
 	// Open the file with the filename passed in and with ios::app option set
 	// NOTE: When ios::app is set, all output operations are performed at the end
 	//       of the file.
@@ -327,6 +329,8 @@ void ParticleFilter::write(string filename)
 						 << particles[par_index].y << "," \
 						 << particles[par_index].theta << "\n";
 	}
+
+	// Close the file
 	dataFile.close();
 }
 
