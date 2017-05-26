@@ -102,8 +102,10 @@ int main()
 			// Add noise to the ground truth for the initialization step
 			pf.init(gt[i].x + n_x, gt[i].y + n_y, gt[i].theta + n_theta, sigma_pos);
 
-			string par_output = "data/parfiloutput/par_filter_output_init" + ".txt";
+#if WRITE_PAR_FIL_OUTPUT
+			string par_output = string("data/parfiloutput/par_filter_output_init") + string(".txt");
 			pf.write(par_output);
+#endif
 
 		#if DEBUG
 			for(size_t par_index = 0; par_index < pf.particles.size(); par_index++)
