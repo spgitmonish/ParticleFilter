@@ -111,6 +111,46 @@ The confirmation that the filter is working is by looking at the output on the t
    <i>Figure 3: Terminal Output</i>
 </p>  
 
+### Particles Visualization
+
+<p align="center">
+   <img src="images/ParticlesInital.png">
+</p>
+<p align="center">
+   <i>Figure 4: Particles</i>
+</p>
+
+
+<p align="center">
+   <img src="images/Particles10.png">
+</p>
+<p align="center">
+   <i>Figure 5: Particles after 10 time steps</i>
+</p>
+
+<p align="center">
+   <img src="images/Particles1000.png">
+</p>
+<p align="center">
+   <i>Figure 6: Particles after 1000 time steps</i>
+</p>
+
+<p align="center">
+   <img src="images/Particles2443.png">
+</p>
+<p align="center">
+   <i>Figure 7: Final Particles position</i>
+</p>
+
+Here is a GIF which shows the particles which are collected and which represent the state of the kidnapped vehicle i.e. the position within the space defined.
+
+<p align="center">
+   <img src="images/carmovement.gif">
+</p>
+<p align="center">
+   <i>Figure 8: Particles tracking kidnapped vehicle</i>
+</p>
+
 ### Success Criteria
 1. **Accuracy:** The particle filter should localize vehicle position and yaw to within the values specified in the parameters `max_translation_error` (maximum allowed error in x or y) and `max_yaw_error` in `src/main.cpp`.
 
