@@ -153,6 +153,26 @@ Here is a GIF which shows the particles which are collected and which represent 
    <i>Figure 8: Particles tracking kidnapped vehicle</i>
 </p>
 
+### Verifying with Simulator
+Udacity provides a simulator to visualize how the particle filter works. The latest version of the simulator can be downloaded from this link: https://github.com/udacity/self-driving-car-sim/releases
+
+For the model to work with the simulator, the following repo needs to be cloned/downloaded: https://github.com/udacity/CarND-Kidnapped-Vehicle-Project
+Once the repo is downloaded, the user code in particle_filter.cpp/.h needs copied into the files of the same name in newly cloned repo.
+
+> **NOTE:**
+>  On mac when running install-mac.sh, if you run into issues,
+> *cmake* with
+
+> *cmake -DOPENSSL_ROOT_DIR=/usr/local/Cellar/openssl/1.0.2k -DOPENSSL_LIBRARIES=/usr/local/Cellar/openssl/1.0.2k/lib ..*
+
+After following the instructions, the simulator should show how the particle filter works, here is a gif which shows how the simulator works and the message shown if the particle filter works correctly.
+
+<p align="center">
+   <img src="images/SimulatorMedia/SimulatorGif.gif">
+</p>
+<p align="center">
+   <i>Figure 9: Particles tracking kidnapped vehicle on Simulator</i>
+</p>
 ### Success Criteria
 1. **Accuracy:** The particle filter should localize vehicle position and yaw to within the values specified in the parameters `max_translation_error` (maximum allowed error in x or y) and `max_yaw_error` in `src/main.cpp`.
 
