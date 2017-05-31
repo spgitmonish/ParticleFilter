@@ -161,11 +161,11 @@ Once the repo is downloaded, the user code in particle_filter.cpp/.h needs copie
 
 > **NOTE:**
 >  On mac when running install-mac.sh, if you run into issues,
-> *cmake* with
+> replace the line *cmake* with the following:
 
 > *cmake -DOPENSSL_ROOT_DIR=/usr/local/Cellar/openssl/1.0.2k -DOPENSSL_LIBRARIES=/usr/local/Cellar/openssl/1.0.2k/lib ..*
 
-After following the instructions, the simulator should show how the particle filter works, here is a gif which shows how the simulator works and the message shown if the particle filter works correctly.
+After following the instructions, the simulator should show how the particle filter works, here is a gif of the simulator at work.
 
 <p align="center">
    <img src="images/SimulatorMedia/SimulatorGif.gif">
@@ -173,6 +173,16 @@ After following the instructions, the simulator should show how the particle fil
 <p align="center">
    <i>Figure 9: Particles tracking kidnapped vehicle on Simulator</i>
 </p>
+
+If your model is working correctly then a success message is displayed by the simulator.
+
+<p align="center">
+   <img src="images/SimulatorMedia/Success.png">
+</p>
+<p align="center">
+   <i>Figure 10: Simulator success message</i>
+</p>
+
 ### Success Criteria
 1. **Accuracy:** The particle filter should localize vehicle position and yaw to within the values specified in the parameters `max_translation_error` (maximum allowed error in x or y) and `max_yaw_error` in `src/main.cpp`.
 
