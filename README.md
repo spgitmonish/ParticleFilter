@@ -11,14 +11,14 @@ The essence of the particle filters is have the particles guess where the object
 Here are a couple of images of localization using Particle Filters from Sebastian's paper (http://robots.stanford.edu/papers/thrun.pf-in-robotics-uai02.pdf).
 
 <p align="center">
-   <img src="images/Initial.png">
+   <img src="images/OtherMedia/Initial.png">
 </p>
 <p align="center">
    <i>Figure 1: Initial State</i>
 </p>  
 
 <p align="center">
-   <img src="images/Final.png">
+   <img src="images/OtherMedia/Final.png">
 </p>
 <p align="center">
    <i>Figure 2: State after a few Iterations</i>
@@ -105,38 +105,40 @@ From the root directory run the following commands from the command line:
 The confirmation that the filter is working is by looking at the output on the terminal, which looks something like this:
 
 <p align="center">
-   <img src="images/Terminal.png">
+   <img src="images/OtherMedia/Terminal.png">
 </p>
 <p align="center">
    <i>Figure 3: Terminal Output</i>
 </p>  
 
 ### Particles Visualization
+Initially the particles are distributed based on the first captured GPS position. The image below shows how the particles are distributed across the first GPS space (+/- 0.3m of GPS (x,y) location).
 
 <p align="center">
-   <img src="images/ParticlesInital.png">
+   <img src="images/OtherMedia/ParticlesInital.png">
 </p>
 <p align="center">
    <i>Figure 4: Particles</i>
 </p>
 
+But after a few iterations, the particles are selected based on weights, position and orientation which are in compliance with the vehicle position and orientation.
 
 <p align="center">
-   <img src="images/Particles10.png">
+   <img src="images/OtherMedia/Particles10.png">
 </p>
 <p align="center">
    <i>Figure 5: Particles after 10 time steps</i>
 </p>
 
 <p align="center">
-   <img src="images/Particles1000.png">
+   <img src="images/OtherMedia/Particles1000.png">
 </p>
 <p align="center">
    <i>Figure 6: Particles after 1000 time steps</i>
 </p>
 
 <p align="center">
-   <img src="images/Particles2443.png">
+   <img src="images/OtherMedia/Particles2443.png">
 </p>
 <p align="center">
    <i>Figure 7: Final Particles position</i>
@@ -145,7 +147,7 @@ The confirmation that the filter is working is by looking at the output on the t
 Here is a GIF which shows the particles which are collected and which represent the state of the kidnapped vehicle i.e. the position within the space defined.
 
 <p align="center">
-   <img src="images/carmovement.gif">
+   <img src="images/OtherMedia/carmovement.gif">
 </p>
 <p align="center">
    <i>Figure 8: Particles tracking kidnapped vehicle</i>
